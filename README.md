@@ -1,6 +1,8 @@
-# FairShift
+# Karya
 
-FairShift is a worker-first workforce management prototype designed for the Prompt Wars 2026 challenge. It helps workers understand daily hours and pay, report unsafe conditions, and track skills, while giving employers a clear overview of workforce conditions across two industries: construction and college facilities.
+Karya is a worker-first workforce management prototype designed for the Prompt Wars 2026 challenge. It helps workers understand daily hours and pay, report unsafe conditions, and track skills, while giving employers a clear overview of workforce conditions across two industries: construction and college facilities.
+
+**Work fairly. Work safely. Know your worth.**
 
 ## Problem statement
 
@@ -8,7 +10,7 @@ Many workers, especially in time-sensitive and physically demanding roles, are n
 
 ## Proposed solution
 
-FairShift combines a simple worker dashboard, transparent pay breakdowns, safety reporting tools, fatigue indicators, and an employer dashboard into one accessible prototype. The application is designed to be easy to demo, mobile-friendly, and multilingual so it maps to real-world operational use without requiring a backend at prototype stage.
+Karya combines a simple worker dashboard, transparent pay breakdowns, safety reporting tools, fatigue indicators, and an employer dashboard into one accessible prototype. The application is designed to be easy to demo, mobile-friendly, and multilingual so it maps to real-world operational use without requiring a backend at prototype stage.
 
 ## Why the problem matters
 
@@ -89,6 +91,7 @@ Then open the local URL shown by Vite in the terminal.
 ## Testing
 
 ```bash
+npm run lint
 npm run test -- --run
 npm run build
 ```
@@ -96,8 +99,8 @@ npm run build
 ## Docker build
 
 ```bash
-docker build -t fairshift .
-docker run --rm -p 8080:8080 fairshift
+docker build -t karya .
+docker run --rm -p 8080:8080 karya
 ```
 
 Then visit http://localhost:8080.
@@ -114,15 +117,15 @@ gcloud config set project YOUR_PROJECT_ID
 2. Build and push the image:
 
 ```bash
-docker build -t gcr.io/YOUR_PROJECT_ID/fairshift .
-docker push gcr.io/YOUR_PROJECT_ID/fairshift
+docker build -t gcr.io/YOUR_PROJECT_ID/karya .
+docker push gcr.io/YOUR_PROJECT_ID/karya
 ```
 
 3. Deploy to Cloud Run:
 
 ```bash
-gcloud run deploy fairshift \
-  --image gcr.io/YOUR_PROJECT_ID/fairshift \
+gcloud run deploy karya \
+  --image gcr.io/YOUR_PROJECT_ID/karya \
   --platform managed \
   --region us-central1 \
   --allow-unauthenticated \

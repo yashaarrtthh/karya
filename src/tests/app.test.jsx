@@ -5,7 +5,7 @@ import { calculateShiftDuration, calculateOvertimeHours, calculatePayBreakdown, 
 import { createSeedState } from '../data/demoData'
 import { readDemoState, resetDemoState, writeDemoState } from '../services/storage'
 
-describe('FairShift calculations', () => {
+describe('Karya calculations', () => {
   it('calculates shift duration', () => {
     expect(calculateShiftDuration('2026-10-24T07:00:00.000Z', '2026-10-24T14:30:00.000Z')).toBe(7.5)
   })
@@ -66,17 +66,30 @@ describe('FairShift calculations', () => {
     resetDemoState()
     expect(readDemoState().language).toBe('en')
   })
+
+  it('migrates existing browser data to the Karya storage key', () => {
+    const savedState = { ...createSeedState(), language: 'ta' }
+    localStorage.clear()
+    localStorage.setItem('fairshift-demo-state-v1', JSON.stringify(savedState))
+
+    expect(readDemoState().language).toBe('ta')
+    writeDemoState(readDemoState())
+
+    expect(localStorage.getItem('karya-demo-state-v1')).not.toBeNull()
+    expect(localStorage.getItem('fairshift-demo-state-v1')).toBeNull()
+  })
 })
 
-describe('FairShift app UI', () => {
+describe('Karya app UI', () => {
   beforeEach(() => {
     localStorage.clear()
   })
 
   it('renders the landing page and supports navigation', () => {
     render(<App />)
-    expect(screen.getByText(/FairShift helps workers and employers/i)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Home/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Every shift deserves fairness. Every worker deserves dignity.' })).toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: /Explore Karya/i })).toHaveLength(2)
+    expect(screen.getByRole('link', { name: 'Home', exact: true })).toBeInTheDocument()
   })
 
   it('switches interface language', async () => {
@@ -85,13 +98,18 @@ describe('FairShift app UI', () => {
     fireEvent.change(selector, { target: { value: 'hi' } })
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /फेयरशिफ्ट श्रमिकों और/i })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: /हर शिफ्ट निष्पक्षता की हकदार है/i })).toBeInTheDocument()
+    })
+
+    fireEvent.change(selector, { target: { value: 'ta' } })
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /ஒவ்வொரு பணிப்பகுதியும் நியாயத்திற்கு உரியது/i })).toBeInTheDocument()
     })
   })
 
   it('lets a worker add a skill to their demo passport', async () => {
     render(<App />)
-    fireEvent.click(screen.getAllByRole('link', { name: /explore the demo/i })[0])
+    fireEvent.click(screen.getAllByRole('link', { name: /explore karya/i })[0])
     fireEvent.click(screen.getByRole('button', { name: /worker/i }))
     fireEvent.click(screen.getByRole('link', { name: /skill passport/i }))
     fireEvent.click(screen.getByRole('button', { name: /add skill or training/i }))
