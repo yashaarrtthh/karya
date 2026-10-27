@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { beforeEach } from 'vitest'
 import App from '../App'
 import { calculateShiftDuration, calculateOvertimeHours, calculatePayBreakdown, detectFatigueWarnings, createSafetyReport, updateSafetyReportStatus, createFeedbackEntry } from '../services/calculations'
 import { createSeedState } from '../data/demoData'
@@ -68,6 +69,10 @@ describe('FairShift calculations', () => {
 })
 
 describe('FairShift app UI', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
   it('renders the landing page and supports navigation', () => {
     render(<App />)
     expect(screen.getByText(/FairShift helps workers and employers/i)).toBeInTheDocument()
@@ -82,5 +87,18 @@ describe('FairShift app UI', () => {
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: /फेयरशिफ्ट श्रमिकों और/i })).toBeInTheDocument()
     })
+  })
+
+  it('lets a worker add a skill to their demo passport', async () => {
+    render(<App />)
+    fireEvent.click(screen.getAllByRole('link', { name: /explore the demo/i })[0])
+    fireEvent.click(screen.getByRole('button', { name: /worker/i }))
+    fireEvent.click(screen.getByRole('link', { name: /skill passport/i }))
+    fireEvent.click(screen.getByRole('button', { name: /add skill or training/i }))
+    fireEvent.change(screen.getByRole('textbox', { name: /skill or training name/i }), { target: { value: 'Confined space awareness' } })
+    fireEvent.click(screen.getByRole('button', { name: /submit/i }))
+
+    expect(await screen.findByText('Confined space awareness')).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent(/added to your skill passport/i)
   })
 })

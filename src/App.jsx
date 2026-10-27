@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { BrowserRouter, Link, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
-import { AlertTriangle, BriefcaseBusiness, Building2, ClipboardList, Clock3, DollarSign, Factory, Languages, LogOut, ShieldCheck, TrendingUp, Users } from 'lucide-react'
+import { BrowserRouter, Link, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import { ArrowRight, BriefcaseBusiness, CheckCircle2, Clock3, DollarSign, Languages, ShieldCheck, TrendingUp, Users } from 'lucide-react'
 import { readDemoState, resetDemoState, writeDemoState } from './services/storage'
 import { calculateOvertimeHours, calculatePayBreakdown, calculateShiftDuration, detectFatigueWarnings, validateSafetyReport } from './services/calculations'
 import { getText } from './i18n/translations'
@@ -29,16 +29,19 @@ function Layout({ state, setState, _selectedRole, setSelectedRole, t }) {
   const location = useLocation()
   const isWorkerRoute = location.pathname.startsWith('/worker')
   const isAdminRoute = location.pathname.startsWith('/admin')
-  const showNav = !['/login', '/'].includes(location.pathname)
+  const isLanding = location.pathname === '/'
+  const isLogin = location.pathname === '/login'
 
   const changeLanguage = (language) => {
     setState((prev) => ({ ...prev, language }))
   }
 
   const resetData = () => {
-    const next = resetDemoState()
-    setState(next)
-    navigate('/login')
+    if (window.confirm('Reset all FairShift demo data in this browser?')) {
+      const next = resetDemoState()
+      setState(next)
+      navigate('/login')
+    }
   }
 
   return (
@@ -53,21 +56,27 @@ function Layout({ state, setState, _selectedRole, setSelectedRole, t }) {
         </div>
 
         <nav className="top-nav" aria-label="Main navigation">
-          <Link to="/">{t('navHome')}</Link>
+          <NavLink to="/" end>{t('navHome')}</NavLink>
+          {isLanding && (
+            <>
+              <a href="#how-it-works">{t('howItWorks', 'How it works')}</a>
+              <a href="#tools">{t('productTools', 'Product tools')}</a>
+            </>
+          )}
           {isWorkerRoute && (
             <>
-              <Link to="/worker">{t('navWorker')}</Link>
-              <Link to="/worker/pay">{t('navPay')}</Link>
-              <Link to="/worker/safety">{t('navSafety')}</Link>
-              <Link to="/worker/skills">{t('navSkills')}</Link>
+              <NavLink to="/worker" end>{t('navWorker')}</NavLink>
+              <NavLink to="/worker/pay">{t('navPay')}</NavLink>
+              <NavLink to="/worker/safety">{t('navSafety')}</NavLink>
+              <NavLink to="/worker/skills">{t('navSkills')}</NavLink>
             </>
           )}
           {isAdminRoute && (
             <>
-              <Link to="/admin">{t('navAdmin')}</Link>
-              <Link to="/admin/safety">{t('navSafety')}</Link>
-              <Link to="/admin/workforce">{t('navWorkforce')}</Link>
-              <Link to="/admin/feedback">{t('navFeedback')}</Link>
+              <NavLink to="/admin" end>{t('navAdmin')}</NavLink>
+              <NavLink to="/admin/safety">{t('navSafety')}</NavLink>
+              <NavLink to="/admin/workforce">{t('navWorkforce')}</NavLink>
+              <NavLink to="/admin/feedback">{t('navFeedback')}</NavLink>
             </>
           )}
         </nav>
@@ -81,17 +90,18 @@ function Layout({ state, setState, _selectedRole, setSelectedRole, t }) {
               <option value="ta">தமிழ்</option>
             </select>
           </label>
-          <button type="button" className="secondary" onClick={resetData}>{t('resetData')}</button>
-          <button type="button" className="ghost" onClick={() => navigate('/login')}>
-            <LogOut size={14} />
-            {t('loginTitle')}
-          </button>
+          {!isLanding && <button type="button" className="secondary" onClick={resetData} aria-label={t('resetData')}>{t('resetData')}</button>}
+          {!isLogin && (
+            <Link to="/login" className="topbar-cta">
+              {t('loginTitle')} <ArrowRight size={15} aria-hidden="true" />
+            </Link>
+          )}
         </div>
       </header>
 
-      <main className={showNav ? 'page-layout' : 'page-layout full-width'}>
+      <main className={`page-layout${isLanding ? ' landing-layout' : ''}`}>
         <Routes>
-          <Route path="/" element={<LandingPage t={t} />} />
+          <Route path="/" element={<LandingPage state={state} t={t} />} />
           <Route path="/login" element={<LoginPage state={state} setState={setState} setSelectedRole={setSelectedRole} t={t} />} />
           <Route path="/worker" element={<WorkerDashboard state={state} setState={setState} t={t} />} />
           <Route path="/worker/pay" element={<WorkerPayPage state={state} setState={setState} t={t} />} />
@@ -108,32 +118,99 @@ function Layout({ state, setState, _selectedRole, setSelectedRole, t }) {
   )
 }
 
-function LandingPage({ t }) {
+function LandingPage({ state, t }) {
+  const industry = state.industries[state.selectedIndustry || 'construction']
+  const worker = industry.workers.find((item) => item.id === state.demoWorkerId) || industry.workers[0]
+  const hours = Number(worker.shiftHours || 0)
+  const estimatedPay = Math.round(hours * Number(worker.hourlyRate || 0))
+
   return (
     <div className="landing-page">
       <section className="hero-panel">
-        <div>
-          <p className="eyebrow">SDG 8 • {t('appName')}</p>
+        <div className="hero-copy">
+          <p className="eyebrow"><span className="eyebrow-dot" /> SDG 8 · {t('appName')}</p>
           <h1>{t('landingTitle')}</h1>
           <p className="lead">{t('landingSubtitle')}</p>
           <div className="cta-row">
-            <Link to="/login" className="primary-btn">{t('loginTitle')}</Link>
-            <Link to="/worker" className="secondary-btn">{t('workerRole')}</Link>
+            <Link to="/login" className="primary-btn">{t('exploreDemo', 'Explore the demo')} <ArrowRight size={17} aria-hidden="true" /></Link>
+            <a href="#how-it-works" className="secondary-btn">{t('howItWorks', 'How it works')}</a>
           </div>
+          <p className="prototype-note"><CheckCircle2 size={15} aria-hidden="true" /> {t('demoOnly')}</p>
         </div>
-        <div className="stats-grid">
-          <StatCard label={t('hoursWorked')} value="54.5h" icon={<Clock3 />} tone="blue" />
-          <StatCard label={t('estimatedEarnings')} value="₹8,220" icon={<DollarSign />} tone="green" />
-          <StatCard label={t('overtimeHours')} value="5.2h" icon={<TrendingUp />} tone="amber" />
-          <StatCard label={t('fatigueWarnings')} value="2 alerts" icon={<AlertTriangle />} tone="rose" />
+        <div className="product-preview" aria-label={t('previewLabel', 'Illustrative worker dashboard preview')}>
+          <div className="preview-topline">
+            <div className="preview-brand"><span className="preview-mark">F</span><strong>FairShift</strong></div>
+            <span className="preview-live"><span /> {t('demoPreview', 'Demo preview')}</span>
+          </div>
+          <div className="preview-greeting">
+            <div>
+              <small>{t('workerDashboardPreview', 'WORKER OVERVIEW')}</small>
+              <h2>{worker.name}</h2>
+              <p>{worker.role} · {worker.workplace}</p>
+            </div>
+            <span className="status-pill success">{worker.status}</span>
+          </div>
+          <div className="preview-metrics">
+            <div className="preview-hours">
+              <span>{t('hoursWorked')}</span>
+              <strong>{hours.toFixed(1)}<small>h</small></strong>
+              <div className="hours-track"><span style={{ width: `${Math.min(hours / 10 * 100, 100)}%` }} /></div>
+              <small>{t('illustrativeData', 'Illustrative demo data')}</small>
+            </div>
+            <div className="preview-pay">
+              <span><DollarSign size={16} aria-hidden="true" /> {t('estimatedEarnings')}</span>
+              <strong>₹{estimatedPay.toLocaleString()}</strong>
+              <small>{t('payEstimateNote', 'Based on recorded demo hours')}</small>
+            </div>
+          </div>
+          <div className="preview-report">
+            <span className="preview-report-icon"><ShieldCheck size={18} aria-hidden="true" /></span>
+            <div><strong>{t('safetyAtAGlance', 'Safety, in view')}</strong><small>{industry.safetyReports.length} {t('demoReports', 'demo reports in this workspace')}</small></div>
+            <ArrowRight size={16} aria-hidden="true" />
+          </div>
         </div>
       </section>
 
-      <section className="info-grid">
-        <InfoCard icon={<Factory />} title="Construction" text="Track site hours, overtime exposure, and visible safety updates on active projects." />
-        <InfoCard icon={<Building2 />} title="College facilities" text="Manage maintenance workloads, facility safety checks, and shift coverage for campus operations." />
-        <InfoCard icon={<ShieldCheck />} title="Safety-first" text="Raise reports with severity, location, and status tracking so concerns are actioned quickly." />
+      <section className="story-section" id="how-it-works">
+        <div className="story-heading">
+          <p className="eyebrow">{t('aClearerWorkday', 'A clearer workday')}</p>
+          <h2>{t('workShouldBeVisible', 'Good work deserves to be seen clearly.')}</h2>
+        </div>
+        <div className="story-copy">
+          <p>{t('workplaceStory', 'Hours, pay, and safety concerns can be difficult to follow when they live in separate places. FairShift brings the everyday details together, so workers and employers can make more informed decisions.')}</p>
+          <Link to="/login" className="text-link">{t('seeHowItWorks', 'See how it works')} <ArrowRight size={16} aria-hidden="true" /></Link>
+        </div>
       </section>
+
+      <section className="tools-section" id="tools">
+        <div className="tools-heading">
+          <div>
+            <p className="eyebrow">{t('builtForRealWork', 'Built around real work')}</p>
+            <h2>{t('smallThingsMatter', 'The details that make a shift fairer.')}</h2>
+          </div>
+          <p>{t('toolsDescription', 'A practical set of tools for the people doing the work and the people responsible for supporting them.')}</p>
+        </div>
+        <div className="feature-list">
+          <InfoCard icon={<Clock3 />} title={t('hoursPayFeature', 'Hours you can understand')} text={t('hoursPayDescription', 'See shift history, overtime, and a transparent estimate of earnings in one place.')} />
+          <InfoCard icon={<ShieldCheck />} title={t('safetyFeature', 'Safety concerns that stay visible')} text={t('safetyDescription', 'Submit workplace reports with location and severity, then follow their status through review.')} />
+          <InfoCard icon={<Users />} title={t('workforceFeature', 'A shared view of the work')} text={t('workforceDescription', 'Give employers a focused view of shifts, workforce trends, and reports that need attention.')} />
+        </div>
+      </section>
+
+      <section className="closing-panel">
+        <div>
+          <p className="eyebrow">{t('startWithDemo', 'Start with the demo')}</p>
+          <h2>{t('takeLookInside', 'See what a more transparent shift can look like.')}</h2>
+          <p>{t('prototypeDisclaimer', 'FairShift is a browser-based prototype with sample records. Your demo changes stay in this browser.')}</p>
+        </div>
+        <Link to="/login" className="primary-btn">{t('exploreDemo', 'Explore the demo')} <ArrowRight size={17} aria-hidden="true" /></Link>
+      </section>
+
+      <footer className="site-footer">
+        <span>FairShift · SDG 8</span>
+        <span>{t('tagline')}</span>
+        <Link to="/login">{t('demoAccess', 'Demo access')}</Link>
+      </footer>
     </div>
   )
 }
@@ -424,9 +501,38 @@ function WorkerSafetyPage({ state, setState, t }) {
   )
 }
 
-function WorkerSkillsPage({ state, t }) {
+function WorkerSkillsPage({ state, setState, t }) {
   const currentIndustryKey = state.selectedIndustry || 'construction'
   const industryData = state.industries[currentIndustryKey]
+  const [addingSkill, setAddingSkill] = useState(false)
+  const [skillName, setSkillName] = useState('')
+  const [skillError, setSkillError] = useState('')
+  const [success, setSuccess] = useState('')
+
+  const addSkill = (event) => {
+    event.preventDefault()
+    const name = skillName.trim()
+    if (!name) {
+      setSkillError(t('skillNameRequired', 'Enter a skill or training name.'))
+      return
+    }
+
+    const skill = { id: `skill-${Date.now()}`, name, status: 'Pending review', date: new Date().toISOString().slice(0, 10), level: 'To be assessed' }
+    setState((previous) => ({
+      ...previous,
+      industries: {
+        ...previous.industries,
+        [currentIndustryKey]: {
+          ...previous.industries[currentIndustryKey],
+          skills: [skill, ...previous.industries[currentIndustryKey].skills],
+        },
+      },
+    }))
+    setSkillName('')
+    setSkillError('')
+    setSuccess(t('skillRequestSuccess', 'Added to your skill passport for review.'))
+    setAddingSkill(false)
+  }
 
   return (
     <div className="page-block">
@@ -459,7 +565,22 @@ function WorkerSkillsPage({ state, t }) {
               </div>
             ))}
           </div>
-          <button type="button" className="primary">{t('skillAdd')}</button>
+          {!addingSkill ? (
+            <button type="button" className="primary" onClick={() => { setAddingSkill(true); setSuccess('') }}>{t('skillAdd')}</button>
+          ) : (
+            <form className="skill-add-form" onSubmit={addSkill}>
+              <label>
+                <span>{t('skillName', 'Skill or training name')}</span>
+                <input autoFocus value={skillName} onChange={(event) => { setSkillName(event.target.value); setSkillError('') }} aria-describedby={skillError ? 'skill-error' : undefined} />
+                {skillError && <small id="skill-error" role="alert">{skillError}</small>}
+              </label>
+              <div className="button-row">
+                <button type="submit" className="primary">{t('submit')}</button>
+                <button type="button" className="secondary" onClick={() => { setAddingSkill(false); setSkillError('') }}>{t('cancel', 'Cancel')}</button>
+              </div>
+            </form>
+          )}
+          {success && <p className="success-message" role="status">{success}</p>}
         </div>
       </div>
     </div>
@@ -469,70 +590,195 @@ function WorkerSkillsPage({ state, t }) {
 function AdminDashboard({ state, setState, t }) {
   const currentIndustryKey = state.selectedIndustry || 'construction'
   const industryData = state.industries[currentIndustryKey]
+  const [reportQuery, setReportQuery] = useState('')
+  const [reportStatusFilter, setReportStatusFilter] = useState('All')
+  const [dateRange, setDateRange] = useState('7d')
+
   const workerCount = industryData.workers.length
   const onShiftCount = industryData.workers.filter((worker) => worker.status === 'On shift').length
   const totalHours = industryData.workers.reduce((sum, worker) => sum + (worker.shiftHours || 0), 0)
   const payroll = industryData.workers.reduce((sum, worker) => sum + ((worker.hourlyRate || 0) * (worker.shiftHours || 0)), 0)
   const openReports = industryData.safetyReports.filter((report) => report.status !== 'Resolved').length
   const warningCount = industryData.workers.reduce((sum, worker) => sum + (worker.warningCount || 0), 0)
+  const atRiskWorkers = industryData.workers.filter((worker) => (worker.warningCount || 0) > 0 || (worker.overtimeHours || 0) > 0).length
+  const recentRangeMs = { '7d': 7 * 24 * 60 * 60 * 1000, '14d': 14 * 24 * 60 * 60 * 1000, '30d': 30 * 24 * 60 * 60 * 1000 }[dateRange] || 7 * 24 * 60 * 60 * 1000
+  const now = new Date()
+  const oldestAllowedDate = now.getTime() - recentRangeMs
+  const filteredReports = industryData.safetyReports.filter((report) => {
+    const matchesQuery = !reportQuery || [report.title, report.category, report.area, report.description].join(' ').toLowerCase().includes(reportQuery.toLowerCase())
+    const matchesStatus = reportStatusFilter === 'All' || report.status === reportStatusFilter
+    const createdAt = report.createdAt ? new Date(report.createdAt).getTime() : null
+    const matchesRange = !createdAt || createdAt >= oldestAllowedDate
+    return matchesQuery && matchesStatus && matchesRange
+  })
+
+  const urgentReports = filteredReports.filter((report) => report.severity === 'High' || report.status === 'Submitted').slice(0, 3)
+  const avgHours = workerCount ? totalHours / workerCount : 0
+  const payrollSummary = [
+    { label: 'Workers', value: workerCount.toString(), hint: `${onShiftCount} on shift now`, icon: <Users size={18} />, linkTo: '/admin/workforce' },
+    { label: 'Labour hours', value: `${totalHours.toFixed(1)}h`, hint: `${avgHours.toFixed(1)}h average`, icon: <Clock3 size={18} />, linkTo: '/admin/workforce' },
+    { label: 'Open safety cases', value: openReports.toString(), hint: `${filteredReports.length} in selected window`, icon: <ShieldCheck size={18} />, linkTo: '/admin/safety' },
+    { label: 'Estimated payroll', value: `₹${payroll.toFixed(0)}`, hint: `${warningCount} fatigue alerts`, icon: <DollarSign size={18} />, linkTo: '/admin/workforce' },
+  ]
 
   return (
-    <div className="page-block">
-      <div className="card hero-card admin-header">
-        <div>
-          <p className="eyebrow">{t('adminDashboard')}</p>
-          <h2>{t('workforceOverview')}</h2>
+    <div className="page-block dashboard-shell">
+      <div className="card dashboard-hero">
+        <div className="dashboard-header-copy">
+          <p className="eyebrow">{t('adminDashboard', 'Employer dashboard')}</p>
+          <h2>{t('workforceOverview', 'Executive overview')}</h2>
+          <p className="dashboard-subtitle">Monitor labour coverage, act on safety follow-ups, and keep the workforce running within safe operating limits.</p>
         </div>
-        <label className="industry-select" htmlFor="industry-selector">
-          <span>{t('industryLabel')}</span>
-          <select id="industry-selector" value={state.selectedIndustry} onChange={(event) => setState((prev) => ({ ...prev, selectedIndustry: event.target.value }))} aria-label={t('industryLabel')}>
-            <option value="construction">{t('construction')}</option>
-            <option value="college">{t('college')}</option>
-          </select>
-        </label>
+
+        <div className="dashboard-toolbar">
+          <label className="field-inline" htmlFor="industry-selector">
+            <span>{t('industryLabel')}</span>
+            <select id="industry-selector" value={state.selectedIndustry} onChange={(event) => setState((prev) => ({ ...prev, selectedIndustry: event.target.value }))} aria-label={t('industryLabel')}>
+              <option value="construction">{t('construction')}</option>
+              <option value="college">{t('college')}</option>
+            </select>
+          </label>
+
+          <div className="range-toggle" aria-label="Date range filter">
+            {['7d', '14d', '30d'].map((value) => (
+              <button
+                key={value}
+                type="button"
+                className={dateRange === value ? 'range-button active' : 'range-button'}
+                onClick={() => setDateRange(value)}
+              >
+                {value === '7d' ? '7 days' : value === '14d' ? '14 days' : '30 days'}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
-      <section className="metrics-grid">
-        <MetricTile label={t('workerSummary')} value={workerCount.toString()} icon={<Users size={18} />} />
-        <MetricTile label="Currently on shift" value={onShiftCount.toString()} icon={<Clock3 size={18} />} />
-        <MetricTile label={t('workingHours')} value={`${totalHours.toFixed(1)}h`} icon={<ClipboardList size={18} />} />
-        <MetricTile label={t('payroll')} value={`₹${payroll.toFixed(0)}`} icon={<DollarSign size={18} />} />
+      <section className="kpi-grid">
+        {payrollSummary.map((metric) => (
+          <MetricTile
+            key={metric.label}
+            label={metric.label}
+            value={metric.value}
+            hint={metric.hint}
+            icon={metric.icon}
+            linkTo={metric.linkTo}
+          />
+        ))}
       </section>
 
-      <section className="content-grid">
-        <div className="panel card">
-          <h3>{t('openReports')}</h3>
-          <div className="stacked-list">
-            {industryData.safetyReports.slice(0, 3).map((report) => (
-              <div className="list-item" key={report.id}>
-                <div>
+      <section className="content-grid dashboard-grid">
+        <div className="panel card dashboard-panel">
+          <div className="panel-header row-between">
+            <div>
+              <p className="panel-kicker">Priority follow-up</p>
+              <h3>Safety cases</h3>
+            </div>
+            <Link to="/admin/safety" className="text-link">View all</Link>
+          </div>
+
+          <div className="filter-row dashboard-filters">
+            <input
+              value={reportQuery}
+              onChange={(event) => setReportQuery(event.target.value)}
+              placeholder="Search reports, area, or category"
+              aria-label="Search safety reports"
+            />
+            <select value={reportStatusFilter} onChange={(event) => setReportStatusFilter(event.target.value)} aria-label="Filter safety reports by status">
+              <option value="All">All statuses</option>
+              <option value="Submitted">Submitted</option>
+              <option value="Under review">Under review</option>
+              <option value="Action in progress">Action in progress</option>
+              <option value="Resolved">Resolved</option>
+            </select>
+          </div>
+
+          <div className="stacked-list dashboard-list">
+            {urgentReports.length > 0 ? urgentReports.map((report) => (
+              <Link to="/admin/safety" key={report.id} className="list-item dashboard-list-item">
+                <div className="list-copy">
                   <strong>{report.title}</strong>
-                  <small>{report.status} • {report.severity}</small>
+                  <small>{report.area} • {report.status} • {report.severity}</small>
                 </div>
-                <span>{report.category}</span>
+                <span className={`status-badge ${report.status === 'Resolved' ? 'success' : report.severity === 'High' ? 'alert' : 'neutral'}`}>{report.severity}</span>
+              </Link>
+            )) : (
+              <div className="empty-state compact-empty">
+                <strong>No safety issues in this date window.</strong>
+                <p>Everything is currently clear for the selected range.</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="panel card dashboard-panel">
+          <div className="panel-header row-between">
+            <div>
+              <p className="panel-kicker">Workforce signal</p>
+              <h3>Operational notes</h3>
+            </div>
+            <Link to="/admin/workforce" className="text-link">View team</Link>
+          </div>
+
+          <div className="insight-list">
+            <div className="insight-item">
+              <span className="insight-label">At-risk workers</span>
+              <strong>{atRiskWorkers}</strong>
+              <small>Alerting on overtime or fatigue warnings.</small>
+            </div>
+            <div className="insight-item">
+              <span className="insight-label">Shift pressure</span>
+              <strong>{warningCount}</strong>
+              <small>Recorded warning patterns across this team.</small>
+            </div>
+            <div className="insight-item">
+              <span className="insight-label">Response load</span>
+              <strong>{Math.max(openReports - 1, 0)}</strong>
+              <small>Reports still requiring action from supervisors.</small>
+            </div>
+          </div>
+
+          <div className="stacked-list compact-list">
+            {industryData.activity.map((item) => (
+              <div className="list-item notice-item" key={item.id}>
+                <div className="list-copy">
+                  <strong>{item.text}</strong>
+                  <small>{item.time}</small>
+                </div>
               </div>
             ))}
           </div>
         </div>
-
-        <div className="panel card">
-          <h3>{t('fatigueAlerts')}</h3>
-          <div className="stacked-list">
-            <div className="list-item"><div><strong>Overtime concentration</strong><small>{warningCount} warning records</small></div><span>{warningCount}</span></div>
-            <div className="list-item"><div><strong>Open safety issues</strong><small>{openReports} active</small></div><span>{openReports}</span></div>
-          </div>
-        </div>
       </section>
 
-      <section className="panel card">
-        <h3>{t('operationActivity')}</h3>
-        <div className="stacked-list">
-          {industryData.activity.map((item) => (
-            <div className="list-item" key={item.id}>
-              <div><strong>{item.text}</strong></div>
-              <span>{item.time}</span>
-            </div>
-          ))}
+      <section className="panel card dashboard-panel wide-panel">
+        <div className="panel-header row-between">
+          <div>
+            <p className="panel-kicker">Operational summary</p>
+            <h3>Actions with context</h3>
+          </div>
+          <div className="action-cluster">
+            <Link to="/admin/safety" className="primary-btn small-btn">Review safety queue</Link>
+            <Link to="/admin/workforce" className="secondary-btn small-btn">Open workforce view</Link>
+          </div>
+        </div>
+
+        <div className="summary-grid">
+          <div className="summary-block">
+            <span className="summary-label">Open safety review</span>
+            <strong>{openReports}</strong>
+            <p>Reports still pending attention from the operations team.</p>
+          </div>
+          <div className="summary-block">
+            <span className="summary-label">Coverage level</span>
+            <strong>{Math.round((onShiftCount / workerCount) * 100)}%</strong>
+            <p>{onShiftCount} workers are currently on shift across {workerCount} active roles.</p>
+          </div>
+          <div className="summary-block">
+            <span className="summary-label">Average weekly hours</span>
+            <strong>{avgHours.toFixed(1)}h</strong>
+            <p>Used to spot repeated overtime concentration without overreacting to a single shift.</p>
+          </div>
         </div>
       </section>
     </div>
@@ -702,26 +948,29 @@ function NotFoundPage({ t }) {
   )
 }
 
-function MetricTile({ value, label, icon }) {
-  return (
-    <div className="metric-tile card">
+function MetricTile({ value, label, hint, icon, linkTo }) {
+  const content = (
+    <>
       <div className="metric-icon">{icon}</div>
-      <div>
+      <div className="metric-copy">
         <small>{label}</small>
         <strong>{value}</strong>
+        {hint && <span>{hint}</span>}
       </div>
-    </div>
+    </>
   )
-}
 
-function StatCard({ label, value, icon, tone }) {
+  if (linkTo) {
+    return (
+      <Link to={linkTo} className="metric-tile card dashboard-kpi" aria-label={`${label}: ${value}`}>
+        {content}
+      </Link>
+    )
+  }
+
   return (
-    <div className={`stat-card tone-${tone}`}>
-      <div className="stat-icon">{icon}</div>
-      <div>
-        <small>{label}</small>
-        <strong>{value}</strong>
-      </div>
+    <div className="metric-tile card dashboard-kpi">
+      {content}
     </div>
   )
 }
