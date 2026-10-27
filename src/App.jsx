@@ -37,7 +37,7 @@ function Layout({ state, setState, _selectedRole, setSelectedRole, t }) {
   }
 
   const resetData = () => {
-    if (window.confirm('Reset all FairShift demo data in this browser?')) {
+    if (window.confirm(`Reset all ${t('appName')} demo data in this browser?`)) {
       const next = resetDemoState()
       setState(next)
       navigate('/login')
@@ -47,13 +47,13 @@ function Layout({ state, setState, _selectedRole, setSelectedRole, t }) {
   return (
     <div className="app-shell">
       <header className="topbar">
-        <div className="brand-wrap">
-          <div className="brand-mark">F</div>
+        <Link to="/" className="brand-wrap" aria-label={`${t('appName')} home`}>
+          <span className="brand-mark" aria-hidden="true">K</span>
           <div>
             <strong>{t('appName')}</strong>
             <small>{t('tagline')}</small>
           </div>
-        </div>
+        </Link>
 
         <nav className="top-nav" aria-label="Main navigation">
           <NavLink to="/" end>{t('navHome')}</NavLink>
@@ -93,7 +93,7 @@ function Layout({ state, setState, _selectedRole, setSelectedRole, t }) {
           {!isLanding && <button type="button" className="secondary" onClick={resetData} aria-label={t('resetData')}>{t('resetData')}</button>}
           {!isLogin && (
             <Link to="/login" className="topbar-cta">
-              {t('loginTitle')} <ArrowRight size={15} aria-hidden="true" />
+              {t('demoAccess', 'Demo access')} <ArrowRight size={15} aria-hidden="true" />
             </Link>
           )}
         </div>
@@ -128,23 +128,23 @@ function LandingPage({ state, t }) {
     <div className="landing-page">
       <section className="hero-panel">
         <div className="hero-copy">
-          <p className="eyebrow"><span className="eyebrow-dot" /> SDG 8 · {t('appName')}</p>
+          <p className="eyebrow"><span className="eyebrow-dot" /> {t('sdg8Label', 'SDG 8 · Decent Work and Economic Growth')}</p>
           <h1>{t('landingTitle')}</h1>
           <p className="lead">{t('landingSubtitle')}</p>
           <div className="cta-row">
-            <Link to="/login" className="primary-btn">{t('exploreDemo', 'Explore the demo')} <ArrowRight size={17} aria-hidden="true" /></Link>
+            <Link to="/login" className="primary-btn">{t('exploreKarya', 'Explore Karya')} <ArrowRight size={17} aria-hidden="true" /></Link>
             <a href="#how-it-works" className="secondary-btn">{t('howItWorks', 'How it works')}</a>
           </div>
           <p className="prototype-note"><CheckCircle2 size={15} aria-hidden="true" /> {t('demoOnly')}</p>
         </div>
-        <div className="product-preview" aria-label={t('previewLabel', 'Illustrative worker dashboard preview')}>
+        <aside className="product-preview" aria-label={t('previewLabel', 'Illustrative worker dashboard preview')}>
           <div className="preview-topline">
-            <div className="preview-brand"><span className="preview-mark">F</span><strong>FairShift</strong></div>
-            <span className="preview-live"><span /> {t('demoPreview', 'Demo preview')}</span>
+            <div className="preview-brand"><span className="preview-mark" aria-hidden="true">K</span><strong>{t('appName')}</strong></div>
+            <span className="preview-live"><span aria-hidden="true" /> {t('demoPreview', 'Sample record')}</span>
           </div>
           <div className="preview-greeting">
             <div>
-              <small>{t('workerDashboardPreview', 'WORKER OVERVIEW')}</small>
+              <small>{t('workerDashboardPreview', 'SHIFT SNAPSHOT')}</small>
               <h2>{worker.name}</h2>
               <p>{worker.role} · {worker.workplace}</p>
             </div>
@@ -155,30 +155,35 @@ function LandingPage({ state, t }) {
               <span>{t('hoursWorked')}</span>
               <strong>{hours.toFixed(1)}<small>h</small></strong>
               <div className="hours-track"><span style={{ width: `${Math.min(hours / 10 * 100, 100)}%` }} /></div>
-              <small>{t('illustrativeData', 'Illustrative demo data')}</small>
+              <small>{t('illustrativeData', 'Hours in this sample record')}</small>
             </div>
             <div className="preview-pay">
               <span><DollarSign size={16} aria-hidden="true" /> {t('estimatedEarnings')}</span>
               <strong>₹{estimatedPay.toLocaleString()}</strong>
-              <small>{t('payEstimateNote', 'Based on recorded demo hours')}</small>
+              <small>{t('payEstimateNote', 'Hours × recorded hourly rate')}</small>
             </div>
           </div>
-          <div className="preview-report">
+          <Link to="/worker/safety" className="preview-report" aria-label={t('recentSafetyReports')}>
             <span className="preview-report-icon"><ShieldCheck size={18} aria-hidden="true" /></span>
             <div><strong>{t('safetyAtAGlance', 'Safety, in view')}</strong><small>{industry.safetyReports.length} {t('demoReports', 'demo reports in this workspace')}</small></div>
             <ArrowRight size={16} aria-hidden="true" />
-          </div>
-        </div>
+          </Link>
+        </aside>
       </section>
 
       <section className="story-section" id="how-it-works">
         <div className="story-heading">
           <p className="eyebrow">{t('aClearerWorkday', 'A clearer workday')}</p>
-          <h2>{t('workShouldBeVisible', 'Good work deserves to be seen clearly.')}</h2>
+          <h2>{t('workShouldBeVisible', 'A clearer picture of every workday.')}</h2>
         </div>
         <div className="story-copy">
-          <p>{t('workplaceStory', 'Hours, pay, and safety concerns can be difficult to follow when they live in separate places. FairShift brings the everyday details together, so workers and employers can make more informed decisions.')}</p>
-          <Link to="/login" className="text-link">{t('seeHowItWorks', 'See how it works')} <ArrowRight size={16} aria-hidden="true" /></Link>
+          <p>{t('workplaceStory', 'Keep the essentials connected: record a shift, understand its estimated pay, and make safety concerns visible to the people responsible for following up.')}</p>
+          <ol className="how-steps">
+            <li><span>01</span><div><strong>{t('howStepOneTitle', 'Record the shift')}</strong><small>{t('howStepOneCopy', 'Workers can start and end a shift in the demo.')}</small></div></li>
+            <li><span>02</span><div><strong>{t('howStepTwoTitle', 'Review hours and pay')}</strong><small>{t('howStepTwoCopy', 'See recorded hours, overtime, and an estimated breakdown.')}</small></div></li>
+            <li><span>03</span><div><strong>{t('howStepThreeTitle', 'Raise a safety concern')}</strong><small>{t('howStepThreeCopy', 'Submit a report and follow its status in the employer view.')}</small></div></li>
+          </ol>
+          <Link to="/login" className="text-link">{t('seeHowItWorks', 'Explore the working demo')} <ArrowRight size={16} aria-hidden="true" /></Link>
         </div>
       </section>
 
@@ -186,30 +191,32 @@ function LandingPage({ state, t }) {
         <div className="tools-heading">
           <div>
             <p className="eyebrow">{t('builtForRealWork', 'Built around real work')}</p>
-            <h2>{t('smallThingsMatter', 'The details that make a shift fairer.')}</h2>
+            <h2>{t('smallThingsMatter', 'Useful tools for a fairer workday.')}</h2>
           </div>
           <p>{t('toolsDescription', 'A practical set of tools for the people doing the work and the people responsible for supporting them.')}</p>
         </div>
         <div className="feature-list">
-          <InfoCard icon={<Clock3 />} title={t('hoursPayFeature', 'Hours you can understand')} text={t('hoursPayDescription', 'See shift history, overtime, and a transparent estimate of earnings in one place.')} />
-          <InfoCard icon={<ShieldCheck />} title={t('safetyFeature', 'Safety concerns that stay visible')} text={t('safetyDescription', 'Submit workplace reports with location and severity, then follow their status through review.')} />
-          <InfoCard icon={<Users />} title={t('workforceFeature', 'A shared view of the work')} text={t('workforceDescription', 'Give employers a focused view of shifts, workforce trends, and reports that need attention.')} />
+          <InfoCard to="/worker" icon={<Clock3 />} title={t('hoursPayFeature', 'Working-time tracking')} text={t('hoursPayDescription', 'Record shift start and end times, review shift history, and see overtime clearly.')} />
+          <InfoCard to="/worker/pay" icon={<DollarSign />} title={t('wageFeature', 'Wage transparency')} text={t('wageDescription', 'Review regular and overtime hours alongside an estimated pay breakdown.')} />
+          <InfoCard to="/worker/safety" icon={<ShieldCheck />} title={t('safetyFeature', 'Workplace safety reporting')} text={t('safetyDescription', 'Submit a concern with its location and severity, then track its review status.')} />
+          <InfoCard to="/worker" icon={<TrendingUp />} title={t('wellbeingFeature', 'Worker wellbeing')} text={t('wellbeingDescription', 'Surface overtime and fatigue warnings from the sample shift records.')} />
+          <InfoCard to="/admin" icon={<BriefcaseBusiness />} title={t('workforceFeature', 'Worker and employer tools')} text={t('workforceDescription', 'Workers see their shift details; employers review workforce records and reports.')} />
         </div>
       </section>
 
       <section className="closing-panel">
         <div>
           <p className="eyebrow">{t('startWithDemo', 'Start with the demo')}</p>
-          <h2>{t('takeLookInside', 'See what a more transparent shift can look like.')}</h2>
-          <p>{t('prototypeDisclaimer', 'FairShift is a browser-based prototype with sample records. Your demo changes stay in this browser.')}</p>
+          <h2>{t('takeLookInside', 'Start with a sample shift.')}</h2>
+          <p>{t('prototypeDisclaimer', 'Karya is a browser-based prototype. It uses fictional sample records, and changes remain in this browser; it is not connected to a live workforce system.')}</p>
         </div>
-        <Link to="/login" className="primary-btn">{t('exploreDemo', 'Explore the demo')} <ArrowRight size={17} aria-hidden="true" /></Link>
+        <Link to="/login" className="primary-btn">{t('exploreKarya', 'Explore Karya')} <ArrowRight size={17} aria-hidden="true" /></Link>
       </section>
 
       <footer className="site-footer">
-        <span>FairShift · SDG 8</span>
+        <span>Karya · SDG 8</span>
         <span>{t('tagline')}</span>
-        <Link to="/login">{t('demoAccess', 'Demo access')}</Link>
+        <Link to="/login" className="footer-demo-link">{t('demoAccess', 'Demo access')} <ArrowRight size={14} aria-hidden="true" /></Link>
       </footer>
     </div>
   )
@@ -975,15 +982,16 @@ function MetricTile({ value, label, hint, icon, linkTo }) {
   )
 }
 
-function InfoCard({ icon, title, text }) {
+function InfoCard({ icon, title, text, to }) {
   return (
-    <div className="info-card card">
+    <Link to={to} className="info-card card">
       <div className="metric-icon">{icon}</div>
       <div>
         <h3>{title}</h3>
         <p>{text}</p>
       </div>
-    </div>
+      <ArrowRight className="info-card-arrow" size={16} aria-hidden="true" />
+    </Link>
   )
 }
 

@@ -1,10 +1,11 @@
 import { createSeedState } from '../data/demoData'
 
-const STORAGE_KEY = 'fairshift-demo-state-v1'
+const STORAGE_KEY = 'karya-demo-state-v1'
+const LEGACY_STORAGE_KEY = 'fairshift-demo-state-v1'
 
 export function readDemoState() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY)
     if (!raw) return createSeedState()
 
     const parsed = JSON.parse(raw)
@@ -19,10 +20,12 @@ export function readDemoState() {
 
 export function writeDemoState(state) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+  localStorage.removeItem(LEGACY_STORAGE_KEY)
 }
 
 export function resetDemoState() {
   const seed = createSeedState()
   localStorage.setItem(STORAGE_KEY, JSON.stringify(seed))
+  localStorage.removeItem(LEGACY_STORAGE_KEY)
   return seed
 }
